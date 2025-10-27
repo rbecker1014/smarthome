@@ -1,79 +1,84 @@
 # SmartThings Controller Project Overview
 
-This repository contains a lightweight mobile-friendly web application that proxies
-SmartThings lighting commands through a Node.js/Express backend. The codebase is
-deliberately small, making it easy to extend while keeping sensitive credentials
-outside of version control.
+This project delivers a lightweight, mobile-friendly web client paired with an
+Express proxy for sending lighting commands to the SmartThings platform. The
+backend mediates between the browser and SmartThings' REST API, while the
+frontend offers a minimal control panel suitable for phones and tablets.
 
-## Architecture at a Glance
+## Directory Layout
 
-| Layer      | Technology | Purpose |
-| ---------- | ---------- | ------- |
-| Backend    | Node.js with Express, Axios, and dotenv | Serves the static client, exposes SmartThings proxy endpoints, and injects the personal access token into outbound API calls. |
-| Frontend   | Static HTML, CSS, and vanilla JavaScript | Renders a single-device control panel optimized for small screens and issues fetch requests to the backend. |
+| Path | Description |
+| --- | --- |
+| `server.js` | Node.js/Express entry point that loads environment variables, serves static assets, and exposes SmartThings proxy endpoints. |
+| `public/index.html` | Standalone HTML page with inline CSS/JS that renders the lighting control UI and issues `fetch` requests to the backend. |
+| `docs/` | Project documentation. |
+| `.env` | Developer-local environment file (ignored by Git) that stores secrets such as the SmartThings personal access token. |
 
-### Key Files and Directories
+> **Note:** Supporting files like `README.md` or experimental HTML prototypes are
+> not authoritative for project behavior and can be ignored when reviewing the
+> application flow.
 
-- `server.js` – Express application with proxy routes for `on`, `off`, and `setLevel`
-  SmartThings commands. It loads configuration from environment variables, guards
-  against missing tokens, and normalizes SmartThings API errors before returning
-  them to the client.
-- `public/index.html` – Single-page UI that renders a device card with controls.
-  Inline JavaScript captures button interactions, validates dimmer levels, and
-  sends JSON requests to the backend endpoints.
-- `docs/` – Project documentation, including this overview.
+## Backend Architecture (`server.js`)
 
-## Backend Flow (`server.js`)
+1. **Configuration** – Uses `dotenv` to read `SMARTTHINGS_PAT` and `PORT` from the
+   `.env` file. Startup halts with a descriptive error if the personal access
+   token is missing to prevent unauthenticated API calls.
+2. **Middleware setup** – Applies CORS, JSON body parsing, and static file
+   serving (from `public/`) so that the same process can deliver both API and UI
+   traffic.
+3. **SmartThings helper** – Centralizes HTTP requests in `sendCommand`, which
+   posts to `https://api.smartthings.com/v1/devices/:id/commands` using Axios.
+   The helper normalizes SmartThings error responses into JavaScript `Error`
+   objects with HTTP status codes for consistent downstream handling.
+4. **Lighting routes** – Exposes POST endpoints for `/api/devices/:id/on`,
+   `/off`, and `/level`. The dimmer route rounds and clamps user input to the
+   SmartThings-accepted range (0–100) before forwarding it.
 
-1. Loads the SmartThings personal access token (`SMARTTHINGS_PAT`) and `PORT` from a
-   `.env` file using `dotenv`. Missing credentials halt the server during startup to
-   prevent unauthenticated requests.
-2. Registers middleware for CORS, JSON parsing, and static asset delivery from
-   `public/` so the same Express app can serve the client bundle.
-3. Defines a reusable `sendCommand` helper that posts command payloads to
-   `https://api.smartthings.com/v1/devices/:id/commands` with the bearer token
-   applied. HTTP errors are converted to structured exceptions so the routes return
-   consistent JSON responses.
-4. Exposes three POST routes under `/api/devices/:id` that wrap common lighting
-   actions (`on`, `off`, and `level`). The `level` route bounds and rounds the input
-   before sending it to SmartThings, ensuring valid dimmer values between 0 and 100.
+## Frontend Architecture (`public/index.html`)
 
-## Frontend Flow (`public/index.html`)
+- **Responsive layout** – Inline CSS constrains the content width for comfortable
+  use on mobile devices while keeping the markup minimal.
+- **Device card** – Presents on/off buttons, a numeric dimmer input, and a status
+  area for feedback.
+- **Command wiring** – Event listeners gather input, compose POST requests to the
+  Express routes, and render success or error messages returned from the server.
+- **Device configuration** – Includes a `deviceId` placeholder string that must
+  be replaced with a real SmartThings device identifier during setup.
 
-- Presents a simple “Living Room” device card styled for narrow viewports.
-- Provides buttons to toggle the light and a numeric input plus button to adjust
-  brightness.
-- Calls the backend endpoints via `fetch`, displaying success or error messages in a
-  status area so users receive immediate feedback.
-- Uses a placeholder `deviceId` string (`YOUR_DEVICE_ID_HERE`) that must be replaced
-  with a real SmartThings device identifier for production use.
+## Runtime Flow
 
-## Configuration and Local Development
+1. A user opens `http://localhost:3000`, and Express serves `public/index.html`.
+2. UI interactions trigger `fetch` requests to `/api/devices/:id/...` routes.
+3. The backend invokes `sendCommand`, authenticating with the PAT pulled from
+   `.env` and relaying the request to SmartThings.
+4. SmartThings responds with the command status, which is returned to the client
+   and displayed in the status region.
 
-1. Install dependencies with `npm install`.
-2. Create a local `.env` file (ignored by Git) with the following keys:
+## Configuration & Local Development
+
+1. Run `npm install` to install dependencies.
+2. Create a `.env` file with:
 
    ```env
    SMARTTHINGS_PAT=your-personal-access-token
    PORT=3000
    ```
 
-   The PAT should be generated and stored locally only.
-3. Update the device identifier placeholder in `public/index.html` with the ID of
-   the SmartThings device you intend to control.
-4. Start the server with `npm start` (or `node server.js`) and open
-   `http://localhost:3000` in a browser to interact with the controller.
+3. Replace `YOUR_DEVICE_ID_HERE` in `public/index.html` with the target
+   SmartThings device ID.
+4. Start the server via `npm start` (or `node server.js`) and visit the local URL
+   in a browser to test commands.
 
-## Extending the Project
+## Extensibility Ideas
 
-- **Multiple devices:** Duplicate the UI card structure and parameterize device IDs
-  to control more than one light from the same page.
-- **Additional capabilities:** Add new Express routes that proxy other SmartThings
-  capabilities (e.g., color temperature or scenes) and surface them through new UI
+- Support multiple devices by parameterizing the UI and adding new Express
+  routes as needed.
+- Surface additional SmartThings capabilities (e.g., color temperature, scenes,
+  motion sensors) by introducing new commands in the backend and corresponding UI
   controls.
-- **Authentication:** Introduce user authentication or IP restrictions on the
-  Express server if the app will run outside a trusted network.
+- Add authentication or rate limiting if the server is deployed outside a
+  trusted network.
 
-By separating configuration, backend proxying, and a minimal client, the project
-provides a clear foundation for experimenting with SmartThings automations while
-keeping credentials secure on the developer’s machine.
+This architecture keeps credentials out of source control, funnels all SmartThings
+interactions through a single proxy, and presents a focused UI so you can expand
+or customize the experience without reworking the foundation.
