@@ -41,7 +41,9 @@ frontend offers a minimal control panel suitable for phones and tablets.
 - **Device card** – Presents on/off buttons, a numeric dimmer input, and a status
   area for feedback.
 - **Command wiring** – Event listeners gather input, compose POST requests to the
-  Express routes, and render success or error messages returned from the server.
+  Express routes (prefixing them with the configurable `BASE_URL` that points to
+  the forwarded backend host), and render success or error messages returned from
+  the server.
 - **Device configuration** – Includes a `deviceId` placeholder string that must
   be replaced with a real SmartThings device identifier during setup.
 
