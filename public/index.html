@@ -62,14 +62,15 @@
     </div>
 
     <script>
+      const BASE_URL = 'https://mysterious-spooky-specter-wjrqxq95j9fv6v7-3000.app.github.dev';
       const deviceId = 'ef0d15be-00e8-4bbf-b857-280d3ecf50be';
 
       const statusEl = document.getElementById('status');
       const levelInput = document.getElementById('levelInput');
 
-      async function sendCommand(url, options = {}) {
+      async function sendCommand(path, options = {}) {
         try {
-          const response = await fetch(url, {
+          const response = await fetch(`${BASE_URL}${path}`, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
