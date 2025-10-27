@@ -18,6 +18,7 @@ app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
 const SMARTTHINGS_BASE_URL = 'https://api.smartthings.com/v1';
+const EXPECTED_DEVICE_ID = 'ef0d15be-00e8-4bbf-b857-280d3ecf50be';
 
 async function sendCommand(deviceId, payload) {
   console.log('[SmartThings API Request]', JSON.stringify({ deviceId, payload }, null, 2));
@@ -49,6 +50,9 @@ app.get('/ping', (req, res) => {
 
 app.post('/api/devices/:id/on', async (req, res) => {
   const { id } = req.params;
+  if (id !== EXPECTED_DEVICE_ID) {
+    return res.status(404).json({ success: false, message: 'Unknown device ID' });
+  }
   console.log(`[ON] deviceId=${id}`);
   try {
     const data = await sendCommand(id, {
@@ -66,6 +70,9 @@ app.post('/api/devices/:id/on', async (req, res) => {
 
 app.post('/api/devices/:id/off', async (req, res) => {
   const { id } = req.params;
+  if (id !== EXPECTED_DEVICE_ID) {
+    return res.status(404).json({ success: false, message: 'Unknown device ID' });
+  }
   console.log(`[OFF] deviceId=${id}`);
   try {
     const data = await sendCommand(id, {
@@ -83,6 +90,10 @@ app.post('/api/devices/:id/off', async (req, res) => {
 
 app.post('/api/devices/:id/level', async (req, res) => {
   const { id } = req.params;
+  if (id !== EXPECTED_DEVICE_ID) {
+    return res.status(404).json({ success: false, message: 'Unknown device ID' });
+  }
+  console.log('[LEVEL] request body:', req.body);
   const { level } = req.body;
 
   if (typeof level !== 'number' || Number.isNaN(level)) {
