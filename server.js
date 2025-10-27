@@ -113,6 +113,14 @@ app.post('/api/devices/:id/level', async (req, res) => {
   }
 });
 
+
+app.get('/ping', (req, res) => {
+  console.log('[PING] received');
+  res.json({ pong: true });
+});
+
+
+
 app.listen(PORT, () => {
   console.log(`Server listening on port ${PORT}`);
 });
