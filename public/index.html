@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SmartThings Controller</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        padding: 2rem;
+        max-width: 480px;
+        margin: 0 auto;
+      }
+
+      h1 {
+        text-align: center;
+      }
+
+      .device-card {
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        padding: 1.5rem;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+      }
+
+      button {
+        margin: 0.25rem 0;
+        width: 100%;
+        padding: 0.75rem;
+        font-size: 1rem;
+      }
+
+      .level-controls {
+        display: flex;
+        gap: 0.5rem;
+        align-items: center;
+        margin-top: 1rem;
+      }
+
+      .level-controls input {
+        flex: 1;
+        padding: 0.5rem;
+      }
+
+      .status {
+        margin-top: 1rem;
+        min-height: 1.5rem;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>SmartThings Controller</h1>
+    <div class="device-card">
+      <h2>Living Room</h2>
+      <button id="onBtn">Turn On</button>
+      <button id="offBtn">Turn Off</button>
+      <div class="level-controls">
+        <input id="levelInput" type="number" min="0" max="100" value="50" />
+        <button id="setLevelBtn">Set Level</button>
+      </div>
+      <div class="status" id="status"></div>
+    </div>
+
+    <script>
+      const deviceId = 'YOUR_DEVICE_ID_HERE';
+
+      const statusEl = document.getElementById('status');
+      const levelInput = document.getElementById('levelInput');
+
+      async function sendCommand(url, options = {}) {
+        try {
+          const response = await fetch(url, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            ...options,
+          });
+
+          const data = await response.json();
+          if (!response.ok || !data.success) {
+            throw new Error(data.message || 'Command failed');
+          }
+
+          statusEl.textContent = 'Command sent successfully!';
+        } catch (error) {
+          statusEl.textContent = `Error: ${error.message}`;
+        }
+      }
+
+      document.getElementById('onBtn').addEventListener('click', () => {
+        sendCommand(`/api/devices/${deviceId}/on`);
+      });
+
+      document.getElementById('offBtn').addEventListener('click', () => {
+        sendCommand(`/api/devices/${deviceId}/off`);
+      });
+
+      document.getElementById('setLevelBtn').addEventListener('click', () => {
+        const level = Number(levelInput.value);
+        sendCommand(`/api/devices/${deviceId}/level`, {
+          body: JSON.stringify({ level }),
+        });
+      });
+    </script>
+  </body>
+</html>
