@@ -42,18 +42,19 @@ async function sendCommand(deviceId, payload) {
   }
 }
 
+app.get('/ping', (req, res) => {
+  console.log('[PING] received');
+  res.json({ pong: true });
+});
+
 app.post('/api/devices/:id/on', async (req, res) => {
   const { id } = req.params;
   console.log(`[ON] deviceId=${id}`);
   try {
     const data = await sendCommand(id, {
       commands: [
-        {
-          component: 'main',
-          capability: 'switch',
-          command: 'on',
-        },
-      ],
+        { component: 'main', capability: 'switch', command: 'on' }
+      ]
     });
     console.log('[SmartThings API response]', data);
     res.json({ success: true, data });
@@ -69,12 +70,8 @@ app.post('/api/devices/:id/off', async (req, res) => {
   try {
     const data = await sendCommand(id, {
       commands: [
-        {
-          component: 'main',
-          capability: 'switch',
-          command: 'off',
-        },
-      ],
+        { component: 'main', capability: 'switch', command: 'off' }
+      ]
     });
     console.log('[SmartThings API response]', data);
     res.json({ success: true, data });
@@ -93,6 +90,7 @@ app.post('/api/devices/:id/level', async (req, res) => {
   }
 
   const boundedLevel = Math.max(0, Math.min(100, Math.round(level)));
+  console.log(`[LEVEL] deviceId=${id}, level=${boundedLevel}`);
 
   try {
     const data = await sendCommand(id, {
@@ -112,14 +110,6 @@ app.post('/api/devices/:id/level', async (req, res) => {
     res.status(error.status || 500).json({ success: false, message: error.message });
   }
 });
-
-
-app.get('/ping', (req, res) => {
-  console.log('[PING] received');
-  res.json({ pong: true });
-});
-
-
 
 app.listen(PORT, () => {
   console.log(`Server listening on port ${PORT}`);
