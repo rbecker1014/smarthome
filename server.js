@@ -6,10 +6,10 @@ require('dotenv').config();
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-const SMARTTHINGS_PAT = process.env.SMARTTHINGS_PAT;
+const ST_PAT = process.env.ST_PAT;
 
-if (!SMARTTHINGS_PAT) {
-  console.error('SMARTTHINGS_PAT is not set. Please add it to your .env file.');
+if (!ST_PAT) {
+  console.error('ST_PAT is not set. Please add it to your .env file.');
   process.exit(1);
 }
 
@@ -26,7 +26,7 @@ async function sendCommand(deviceId, payload) {
       payload,
       {
         headers: {
-          Authorization: `Bearer ${SMARTTHINGS_PAT}`,
+          Authorization: `Bearer ${ST_PAT}`,
           'Content-Type': 'application/json',
         },
       }

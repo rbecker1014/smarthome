@@ -9,7 +9,7 @@ This project is a minimal full-stack proof of concept for controlling SmartThing
 
 ## Backend
 
-The backend (`server.js`) exposes three proxy endpoints under `/api/devices/:id` that translate client requests into SmartThings command payloads. It reads the SmartThings Personal Access Token (PAT) from the `SMARTTHINGS_PAT` environment variable defined in a `.env` file and injects it into the Authorization header for every SmartThings API call. The helper `sendCommand` function centralizes HTTP handling, error normalization, and ensures the command format matches SmartThings expectations.
+The backend (`server.js`) exposes three proxy endpoints under `/api/devices/:id` that translate client requests into SmartThings command payloads. It reads the SmartThings Personal Access Token (PAT) from the `ST_PAT` environment variable defined in a `.env` file and injects it into the Authorization header for every SmartThings API call. The helper `sendCommand` function centralizes HTTP handling, error normalization, and ensures the command format matches SmartThings expectations.
 
 ## Frontend
 
@@ -18,7 +18,7 @@ The backend (`server.js`) exposes three proxy endpoints under `/api/devices/:id`
 ## Configuration and Usage
 
 1. Install dependencies with `npm install`.
-2. Copy `.env.example` to `.env` and set `SMARTTHINGS_PAT` to a valid SmartThings personal access token.
+2. Copy `.env.example` to `.env` and set `ST_PAT` to a valid SmartThings personal access token.
 3. Replace `YOUR_DEVICE_ID_HERE` in `public/index.html` with your target light’s device ID.
 4. Start the server with `npm start` and open `http://localhost:3000` in a browser to use the controller.
 
