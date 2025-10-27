@@ -20,6 +20,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 const SMARTTHINGS_BASE_URL = 'https://api.smartthings.com/v1';
 
 async function sendCommand(deviceId, payload) {
+  console.log('[SmartThings API Request]', JSON.stringify({ deviceId, payload }, null, 2));
   try {
     const response = await axios.post(
       `${SMARTTHINGS_BASE_URL}/devices/${deviceId}/commands`,
@@ -43,6 +44,7 @@ async function sendCommand(deviceId, payload) {
 
 app.post('/api/devices/:id/on', async (req, res) => {
   const { id } = req.params;
+  console.log(`[ON] deviceId=${id}`);
   try {
     const data = await sendCommand(id, {
       commands: [
@@ -53,26 +55,34 @@ app.post('/api/devices/:id/on', async (req, res) => {
         },
       ],
     });
+    console.log('[SmartThings API response]', data);
     res.json({ success: true, data });
   } catch (error) {
+    console.error('[SmartThings API ERROR]', error.message);
     res.status(error.status || 500).json({ success: false, message: error.message });
   }
 });
 
 app.post('/api/devices/:id/off', async (req, res) => {
-  console.log(`[OFF] deviceId=${req.params.id}`);
+  const { id } = req.params;
+  console.log(`[OFF] deviceId=${id}`);
   try {
-    const result = await sendCommand(req.params.id, [
-      { component: 'main', capability: 'switch', command: 'off' }
-    ]);
-    console.log('[SmartThings API response]', result.data);
-    res.json(result.data);
-  } catch (err) {
-    console.error('[SmartThings API ERROR]', err.response?.data || err.message);
-    res.status(500).json({ error: err.message });
+    const data = await sendCommand(id, {
+      commands: [
+        {
+          component: 'main',
+          capability: 'switch',
+          command: 'off',
+        },
+      ],
+    });
+    console.log('[SmartThings API response]', data);
+    res.json({ success: true, data });
+  } catch (error) {
+    console.error('[SmartThings API ERROR]', error.message);
+    res.status(error.status || 500).json({ success: false, message: error.message });
   }
 });
-
 
 app.post('/api/devices/:id/level', async (req, res) => {
   const { id } = req.params;
@@ -95,8 +105,10 @@ app.post('/api/devices/:id/level', async (req, res) => {
         },
       ],
     });
+    console.log('[SmartThings API response]', data);
     res.json({ success: true, data });
   } catch (error) {
+    console.error('[SmartThings API ERROR]', error.message);
     res.status(error.status || 500).json({ success: false, message: error.message });
   }
 });
